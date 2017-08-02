@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+  	<meta charset="UTF-8">
+    <title>Youtube API</title>
+  </head>
+  <body>
+ 
+   <div id="app">
+     <h1>{{message}}</h1>
+     <input type="text" v-model="search_string"/>
+     {{search_string}}
+     <button v-on:click="searchYouTube()">Search</button>
+   </div>
+    
+ 
+    <!-- Load the AngularJS library -->
+    <script src="https://unpkg.com/vue@2.1.6/dist/vue.js"></script>
+ 
+   <script>
+   	new Vue({
+		el: '#app',
+		data: {
+			message: 'Hello World'
+		},
+		methods: {
+			searchYouTube() {
+				alert('Hello');	
+			} 
+		}
+	});
+   
+   </script>
+  </body>
+  </html>
