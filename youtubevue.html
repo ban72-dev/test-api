@@ -3,33 +3,298 @@
   <head>
   	<meta charset="UTF-8">
     <title>Youtube API</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <style>
+    /* Remove the navbar's default margin-bottom and rounded borders */ 
+    .navbar {
+      margin-bottom: 0;
+      border-radius: 0;
+    }
+    
+    /* Set height of the grid so .sidenav can be 100% (adjust as needed) */
+    .row.content {height: 450px}
+    
+    /* Set gray background color and 100% height */
+    .sidenav {
+      padding-top: 20px;
+      background-color: #f1f1f1;
+      height: 100%;
+    }
+    
+    /* Set black background color, white text and some padding */
+    footer {
+      background-color: #555;
+      color: white;
+      padding: 15px;
+    }
+    
+    /* On small screens, set height to 'auto' for sidenav and grid */
+    @media screen and (max-width: 767px) {
+      .sidenav {
+        height: auto;
+        padding: 15px;
+      }
+      .row.content {height:auto;} 
+    }
+  </style>
   </head>
   <body>
- 
-   <div id="app">
-     <h1>{{message}}</h1>
-     <input type="text" v-model="search_string"/>
-     {{search_string}}
-     <button v-on:click="searchYouTube()">Search</button>
-   </div>
-    
- 
+ 	<nav class="navbar navbar-inverse">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>                        
+          </button>
+          <a class="navbar-brand" href="#">YouTube</a>
+        </div>
+        <div class="collapse navbar-collapse" id="myNavbar">
+        </div>
+      </div>
+    </nav>
+   <div class="container-fluid text-center">    
+      <div class="row content">
+        <div class="col-sm-2 sidenav">
+        </div>
+       <div class="col-sm-8 text-left"> 
+           <div id="app">
+             <h1>{{message}}</h1>
+             <input type="text" v-model="search_string"/>
+             <span class="search_results"></span>
+             <br><br>
+             
+             <div v-html="search_result"></div>
+           </div>
+           
+             
+      </div>
+        <div class="col-sm-2 sidenav">
+        </div>
+      </div>
+    </div>  
+<footer class="container-fluid text-center">
+  <p>Your Youtube Search Tool</p>
+</footer> 
     <!-- Load the AngularJS library -->
     <script src="https://unpkg.com/vue@2.1.6/dist/vue.js"></script>
+    <script src="https://unpkg.com/axios@0.12.0/dist/axios.min.js"></script>
+  	<script src="https://unpkg.com/lodash@4.13.1/lodash.min.js"></script>
+
  
    <script>
    	new Vue({
 		el: '#app',
 		data: {
-			message: 'Hello World'
+			message: 'Search for videos..', 
+			search_string: '',
+			search_result: ''
+		},
+		watch: {
+			search_string: function(){
+				this.search_result= '';
+				
+				if(this.search_string.length>5){
+					this.searchYouTube();	
+					
+				}
+			}
 		},
 		methods: {
-			searchYouTube() {
-				alert('Hello');	
+			searchYouTube: _.debounce(function() {
+				console.log(this.search_string.length);
+				var app = this;
+				app.search_result = 'Searching...';
+				axios.get('https://www.googleapis.com/youtube/v3/search/' ,{ 
+					params : {
+					part: 'snippet',
+					type: 'video',
+					key: 'AIzaSyA9z5ZN8YraISA8FW-ZvrhZJ1EZso9Z5Bk',
+					q: this.search_string
+				}}).then(function(results){
+							//this.search_result = results;
+							
+							
+							var html = "";
+							var vid_len = "";
+							var entries = results.data.items;
+							var vid_lens ='';
+							console.log('entries:', entries);
+
+							
+							entries.map(function (index, value) {
+								console.log('val',index.id.videoId);
+								var vid_id = index.id.videoId;	
+								 //url = 'https://www.googleapis.com/youtube/v3/videos/';
+									/*var params = {
+										id: vid_id,
+										part: 'snippet,contentDetails',
+										key: 'AIzaSyA9z5ZN8YraISA8FW-ZvrhZJ1EZso9Z5Bk'
+									};*/
+								axios.get('https://www.googleapis.com/youtube/v3/videos/' ,{ 
+											params : {
+											part: 'snippet,contentDetails',
+											id: vid_id,
+											key: 'AIzaSyA9z5ZN8YraISA8FW-ZvrhZJ1EZso9Z5Bk'
+										}
+										}).then(function(search_vid){
+											console.log('search_vid',search_vid.data);
+										entered =  search_vid.data.items[0].contentDetails.duration;
+										var title = search_vid.data.items[0].snippet.title + ' ' + YTDurationToSeconds(entered);
+										var thumbnail = search_vid.data.items[0].snippet.thumbnails.default.url;
+										html += '<p>' + title + '</p>';
+										html += '<img src="' + thumbnail + '">';	
+										//$('#search-results').html(html);
+										app.search_result = html;
+									});
+									
+									
+									
+								  
+								/*vid_len =	$.getJSON(url, params).then(function(search_vid){
+										entered =  search_vid.items[0].contentDetails.duration;
+										var title = value.snippet.title + ' ' + YTDurationToSeconds(entered);
+										var thumbnail = value.snippet.thumbnails.default.url;
+										html += '<p>' + title + '</p>';
+										html += '<img src="' + thumbnail + '">';	
+										//$('#search-results').html(html);
+										app.search_result = html;
+									});*/
+								
+								});
+							
+							/*$$.each(entries, function (index, value) {
+								console.log('val',value.id.videoId);
+								var vid_id = value.id.videoId;	
+								 url = 'https://www.googleapis.com/youtube/v3/videos';
+									var params = {
+										id: vid_id,
+										part: 'snippet,contentDetails',
+										key: 'AIzaSyA9z5ZN8YraISA8FW-ZvrhZJ1EZso9Z5Bk'
+									};
+								  
+								vid_len =	$.getJSON(url, params).then(function(search_vid){
+										entered =  search_vid.items[0].contentDetails.duration;
+										var title = value.snippet.title + ' ' + YTDurationToSeconds(entered);
+										var thumbnail = value.snippet.thumbnails.default.url;
+										html += '<p>' + title + '</p>';
+										html += '<img src="' + thumbnail + '">';	
+										//$('#search-results').html(html);
+										app.search_result = html;
+									});*/
+								
+								//}); 
+								
+								
+								
+								
+						}).catch(function(error){
+							console.log('err:', error)
+						})
+			},500),
+			 YTDurationToSeconds: function(duration) {
+				  var match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/)
+				
+				  var hours = (parseInt(match[1]) || 0);
+				  var minutes = (parseInt(match[2]) || 0);
+				  var seconds = (parseInt(match[3]) || 0);
+				
+				  return hours + 'hrs ' + minutes + 'mins ' + seconds + 'seconds';
+				},
+			searchYouTubes() {
+				alert('Hello');
+				//defineRequest();
+				/*buildApiRequest('GET',
+                '/youtube/v3/search',
+                {'maxResults': '25',
+                 'part': 'snippet',
+                 'q': 'surfing',
+                 'type': ''});
+				var request = gapi.client.youtube.search.list({
+						q: q,
+						part: 'snippet'
+					  });
+					
+					  request.execute(function(response) {
+						var str = JSON.stringify(response.result);
+						$('#search-container').html('<pre>' + str + '</pre>');
+					  });
+*/	
 			} 
 		}
 	});
    
-   </script>
+</script>
+
+<script src="https://apis.google.com/js/api.js"></script>
+    <script>
+	$(document).ready(function () {
+    $('#search-term').submit(function (event) {
+        event.preventDefault();
+        var searchTerm = $('#query').val();
+        getRequest(searchTerm);
+    });
+});
+
+function getRequest(searchTerm) {
+    url = 'https://www.googleapis.com/youtube/v3/search';
+    var params = {
+        part: 'snippet',
+		type: 'video',
+        key: 'AIzaSyA9z5ZN8YraISA8FW-ZvrhZJ1EZso9Z5Bk',
+        q: searchTerm
+    };
+  
+    $.getJSON(url, params, function (searchTerm) {
+        showResults(searchTerm);
+    });
+}
+
+function showResults(results) {
+    var html = "";
+    var vid_len = "";
+    var entries = results.items;
+	var vid_lens ='';
+	
+	
+    
+    $.each(entries, function (index, value) {
+		console.log('val',value.id.videoId);
+		var vid_id = value.id.videoId;	
+		 url = 'https://www.googleapis.com/youtube/v3/videos';
+			var params = {
+				id: vid_id,
+				part: 'snippet,contentDetails',
+				key: 'AIzaSyA9z5ZN8YraISA8FW-ZvrhZJ1EZso9Z5Bk'
+			};
+		  
+		vid_len =	$.getJSON(url, params).then(function(search_vid){
+				entered =  search_vid.items[0].contentDetails.duration;
+				var title = value.snippet.title + ' ' + YTDurationToSeconds(entered);
+				var thumbnail = value.snippet.thumbnails.default.url;
+				html += '<p>' + title + '</p>';
+				html += '<img src="' + thumbnail + '">';	
+				$('#search-results').html(html);
+			});
+		
+     	}); 
+   }
+function YTDurationToSeconds(duration) {
+  var match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/)
+
+  var hours = (parseInt(match[1]) || 0);
+  var minutes = (parseInt(match[2]) || 0);
+  var seconds = (parseInt(match[3]) || 0);
+
+  return hours + 'hrs ' + minutes + 'mins ' + seconds + 'seconds';
+}
+      function start() {};
+
+      // Loads the JavaScript client library and invokes `start` afterwards.
+      gapi.load('client', start);
+    </script>
+
   </body>
   </html>
