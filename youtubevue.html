@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
   	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
   	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link rel="manifest" href="manifest.json">
     <style>
     /* Remove the navbar's default margin-bottom and rounded borders */ 
     .navbar {
@@ -75,8 +76,8 @@
                 </div>
              </div> 
               <div class="col-sm-12"> 
-                <button v-on:click="cycle_through_array" class="btn btn-default pull-right" type="submit">Next <span class="glyphicon glyphicon-menu-right" aria-hidden="true"></span></button>
-                <button v-on:click="reverse_through_array" class="btn btn-default pull-left" type="submit"><span class="glyphicon glyphicon-menu-left" aria-hidden="true"></span> Previous</button>
+                <button v-on:click="cycle_through_array" class="btn btn-default pull-right" type="submit">Next <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span></button>
+                <button v-on:click="reverse_through_array" class="btn btn-default pull-left" type="submit"><span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> Previous</button>
               </div>
             </div>
             
@@ -169,25 +170,24 @@
 										}).then(function(search_vid){
 											//console.log('search_vid',search_vid.data);
 										entered =  search_vid.data.items[0].contentDetails.duration;
-										if(!title){
+										if(app.video_array.length==0){
 											app.selected_video_title = search_vid.data.items[0].snippet.title;
 											app.selected_video_id = vid_id;
 										}
 										var title = search_vid.data.items[0].snippet.title + ' <br> ' + app.YTDurationToSeconds(entered);
 										var thumbnail = search_vid.data.items[0].snippet.thumbnails.default.url;
 										
-										
-										//html += '<p>' + title + '</p>';
-										//html += '<img src="' + thumbnail + '">';	
-										
-										html += '<div class="row"><div class="col-md-8"> <h5 class="text-weight-semibold text-dark text-uppercase">' + title + '</h5><div class="embed-responsive embed-responsive-16by9">';
-										html += '<iframe class="embed-responsive-item" src="https://www.youtube.com/watch?v=' + vid_id + '"></iframe> </div> </div> <div class="col-md-4">';
-										html += '	<h5 class="text-weight-semibold text-dark text-uppercase">' + title + '</h5><div class="embed-responsive embed-responsive-4by3"><iframe width="560" height="315" src="https://www.youtube.com/embed/' + vid_id + '" frameborder="0" allowfullscreen></iframe>></div></div></div>';
+										html += '<div class="row"><div class="col-md-8"> <h5 class="text-weight-semibold text-dark text-uppercase">' + title + '</h5><test v-on:click="reverse_through_array"></test>';
+										//html += '<div class="embed-responsive embed-responsive-16by9">';
+										//html += '<iframe class="embed-responsive-item" src="https://www.youtube.com/watch?v=' + vid_id + '"></iframe> </div>';
+										html += '<img src="' + thumbnail + '">';
+										html += ' </div> <div class="col-md-4">';
+										html += '</div></div>';
 									
 										app.search_result = html;
 										app.results_ok = true;
 										app.array_entry = {
-												title_arr: title,
+												title_arr: search_vid.data.items[0].snippet.title,
 												id_arr: vid_id
 										}
 										app.video_array.push(app.array_entry);
@@ -250,7 +250,44 @@
 				}
 		}
 	});
+  
+function create_the_Serv_worker(){ 
+
+  if (!navigator.serviceWorker) return;
+
+  var indexController = this;
+
+  navigator.serviceWorker.register('/sw.js').then(function(reg) {
+	
+		  
+
+    if (!navigator.serviceWorker.controller) {
+		console.log('Service Worker started: :!navigator');
+      return;
+    }
+	
+    if (reg.waiting) {									
+	 console.log('waiting ');
+	 
+    } 
+
+	
+	if (reg.active) {									
+	 console.log('active:.. ');
+	
+    }
+
+    if (reg.installing) {}
+
    
+	
+	console.log('Service Worker started:');
+	
+	
+  });
+
+} 
+create_the_Serv_worker();
 </script>
 
 <script src="https://apis.google.com/js/api.js"></script>

@@ -1,0 +1,19 @@
+{
+  "name": "YoutubeSearcn",
+  "short_name": "YTSearch",
+  "start_url": "/",
+  "scope": "/",
+  "theme_color": "#000000",
+  "background_color": "#FFFFFF",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "icons": [
+    
+    {
+      "src": "http://icons.iconarchive.com/icons/dtafalonso/android-l/96/Youtube-icon.png",
+      "sizes": "96x96",
+      "type": "image/png"
+    }
+  ]
+}
+<meta name="theme-color" content="#303F9F">
