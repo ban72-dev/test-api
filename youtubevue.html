@@ -140,7 +140,6 @@
 		},
 		methods: {
 			searchYouTube: _.debounce(function() {
-				console.log(this.search_string.length);
 				var app = this;
 				app.search_result = 'Searching...';
 				axios.get('https://www.googleapis.com/youtube/v3/search/' ,{ 
@@ -154,7 +153,7 @@
 							var vid_len = "";
 							var entries = results.data.items;
 							var vid_lens ='';
-							console.log('entries:', entries);
+							//console.log('entries:', entries);
 
 							
 							entries.map(function (index, value) {
@@ -196,6 +195,7 @@
 								});
 	
 						}).catch(function(error){
+							app.search_result = 'Oooops... you do not seem to have an internet connection.'
 							console.log('err:', error)
 						})
 			},500),
@@ -257,7 +257,7 @@ function create_the_Serv_worker(){
 
   var indexController = this;
 
-  navigator.serviceWorker.register('/sw.js').then(function(reg) {
+  navigator.serviceWorker.register('sw3.js').then(function(reg) {
 	
 		  
 
