@@ -68,10 +68,16 @@
              <br><br>
             </div>
             <div v-if="results_ok" class="col-sm-12 col-md-6 col-lg-9"> 
+              <div class="col-sm-12">
             	<h5 class="text-weight-semibold text-dark text-uppercase">{{selected_video_title}}</h5>
                 <div class="embed-responsive embed-responsive-4by3">
-                    <iframe width="560" height="315" src="https://www.youtube.com/embed/{{selected_video_id}}" frameborder="0" allowfullscreen></iframe>>
+                    <iframe width="560" height="315" v-bind:src="'https://www.youtube.com/embed/' + selected_video_id" frameborder="0" allowfullscreen></iframe>>
                 </div>
+             </div> 
+              <div class="col-sm-12"> 
+                <button v-on:click="cycle_through_array" class="btn btn-default pull-right" type="submit">Next <span class="glyphicon glyphicon-menu-right" aria-hidden="true"></span></button>
+                <button v-on:click="reverse_through_array" class="btn btn-default pull-left" type="submit"><span class="glyphicon glyphicon-menu-left" aria-hidden="true"></span> Previous</button>
+              </div>
             </div>
             
              
@@ -102,7 +108,7 @@
 <footer class="container-fluid text-center">
   <p>Your Youtube Search Tool</p>
 </footer> 
-    <!-- Load the AngularJS library -->
+    <!-- Load the Vue library -->
     <script src="https://unpkg.com/vue@2.1.6/dist/vue.js"></script>
     <script src="https://unpkg.com/axios@0.12.0/dist/axios.min.js"></script>
   	<script src="https://unpkg.com/lodash@4.13.1/lodash.min.js"></script>
@@ -113,7 +119,13 @@
 			message: 'Search for videos..', 
 			results_ok:'',
 			search_string: '',
-			search_result: ''
+			search_result: '',
+			selected_video_title: '',
+			selected_video_id: '',
+			video_array:[],
+			array_entry:[],
+			selected_index: 0,
+			counter:0
 		},
 		watch: {
 			search_string: function(){
@@ -137,10 +149,7 @@
 					key: 'AIzaSyA9z5ZN8YraISA8FW-ZvrhZJ1EZso9Z5Bk',
 					q: this.search_string
 				}}).then(function(results){
-							//this.search_result = results;
-							
-							
-							var html = "";
+						var html = "";
 							var vid_len = "";
 							var entries = results.data.items;
 							var vid_lens ='';
@@ -150,12 +159,7 @@
 							entries.map(function (index, value) {
 								console.log('val',index.id.videoId);
 								var vid_id = index.id.videoId;	
-								 //url = 'https://www.googleapis.com/youtube/v3/videos/';
-									/*var params = {
-										id: vid_id,
-										part: 'snippet,contentDetails',
-										key: 'AIzaSyA9z5ZN8YraISA8FW-ZvrhZJ1EZso9Z5Bk'
-									};*/
+								
 								axios.get('https://www.googleapis.com/youtube/v3/videos/' ,{ 
 											params : {
 											part: 'snippet,contentDetails',
@@ -163,10 +167,16 @@
 											key: 'AIzaSyA9z5ZN8YraISA8FW-ZvrhZJ1EZso9Z5Bk'
 										}
 										}).then(function(search_vid){
-											console.log('search_vid',search_vid.data);
+											//console.log('search_vid',search_vid.data);
 										entered =  search_vid.data.items[0].contentDetails.duration;
-										var title = search_vid.data.items[0].snippet.title + ' <br> ' + YTDurationToSeconds(entered);
+										if(!title){
+											app.selected_video_title = search_vid.data.items[0].snippet.title;
+											app.selected_video_id = vid_id;
+										}
+										var title = search_vid.data.items[0].snippet.title + ' <br> ' + app.YTDurationToSeconds(entered);
 										var thumbnail = search_vid.data.items[0].snippet.thumbnails.default.url;
+										
+										
 										//html += '<p>' + title + '</p>';
 										//html += '<img src="' + thumbnail + '">';	
 										
@@ -176,6 +186,11 @@
 									
 										app.search_result = html;
 										app.results_ok = true;
+										app.array_entry = {
+												title_arr: title,
+												id_arr: vid_id
+										}
+										app.video_array.push(app.array_entry);
 									});
 								
 								});
@@ -184,6 +199,46 @@
 							console.log('err:', error)
 						})
 			},500),
+			cycle_through_array: function(){
+				var app = this;
+				
+				if(app.selected_index<app.video_array.length-1){
+					app.selected_index ++;
+					console.log('array_index', app.selected_index);
+					console.log('app.video_array.length', app.video_array.length);
+					app.selected_video_title = app.video_array[app.selected_index].title_arr;
+					app.selected_video_id = app.video_array[app.selected_index].id_arr;
+					
+				}else{
+					app.selected_index =0;
+					console.log('array_index', app.selected_index);
+					console.log('app.video_array.length', app.video_array.length);
+					app.selected_video_title = app.video_array[app.selected_index].title_arr;
+					app.selected_video_id = app.video_array[app.selected_index].id_arr;
+				}
+				
+				
+			},
+			reverse_through_array: function(){
+				var app = this;
+			
+				if(app.selected_index>0){
+					app.selected_index --;
+					console.log('array_index', app.selected_index);
+					console.log('app.video_array.length', app.video_array.length);
+					app.selected_video_title = app.video_array[app.selected_index].title_arr;
+					app.selected_video_id = app.video_array[app.selected_index].id_arr;
+					
+				}else{
+					app.selected_index =app.video_array.length-1;
+					console.log('array_index', app.selected_index);
+					console.log('app.video_array.length', app.video_array.length);
+					app.selected_video_title = app.video_array[app.selected_index].title_arr;
+					app.selected_video_id = app.video_array[app.selected_index].id_arr;
+				}
+				
+				
+			},
 			 YTDurationToSeconds: function(duration) {
 				  var match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/)
 				
@@ -199,19 +254,6 @@
 </script>
 
 <script src="https://apis.google.com/js/api.js"></script>
-    <script>
-
-	function YTDurationToSeconds(duration) {
-	  var match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/)
-	
-	  var hours = (parseInt(match[1]) || 0);
-	  var minutes = (parseInt(match[2]) || 0);
-	  var seconds = (parseInt(match[3]) || 0);
-	
-	  return hours + 'hrs ' + minutes + 'mins ' + seconds + 'seconds';
-	}
-    
-    </script>
-
+ 
   </body>
   </html>
